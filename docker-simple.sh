@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Простой скрипт для работы с MTLA Join Bot в Docker
-# Без docker-compose, только Docker команды
 
 set -e
 
@@ -19,23 +18,15 @@ case "${1:-help}" in
     "run")
         echo "🚀 Запускаем контейнер..."
         
-        # Проверяем наличие .env
-        if [ ! -f .env ]; then
-            echo "❌ Файл .env не найден!"
-            echo "Создайте .env файл на основе env_example.txt"
-            exit 1
-        fi
-        
         # Останавливаем существующий контейнер если есть
         docker stop $CONTAINER_NAME 2>/dev/null || true
         docker rm $CONTAINER_NAME 2>/dev/null || true
         
-        # Запускаем новый контейнер
+        # Запускаем контейнер
         docker run -d \
             --name $CONTAINER_NAME \
             --restart unless-stopped \
             -v $VOLUME_NAME:/data/db \
-            --env-file .env \
             -w /app \
             $IMAGE_NAME
         
