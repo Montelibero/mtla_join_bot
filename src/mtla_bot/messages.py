@@ -26,15 +26,15 @@ MESSAGES = {
         'username_installed': '✅ I installed username',
         
         # Agreement
-        'agreement_text': 'To join the Montelibero Association, you must express your agreement with the current text of the Agreement.\n\nPlease read it:',
+        'agreement_text': 'To join the Montelibero Association, you must express your agreement with the current text of the Agreement.\n\nThis is our common contract.\nPlease read it:',
         'agree': '✅ Agree',
         'disagree': '❌ Disagree',
         'agreement_required': 'To join the Montelibero Association, you must agree to the Agreement. Without this, joining is impossible.',
         
         # Address input and validation
-        'enter_stellar_address': 'Enter your Stellar address:',
-        'invalid_address': 'Invalid Stellar address format.',
-        'stellar_address_explanation': 'A Stellar address is your unique identifier in the Stellar blockchain. It\'s like a bank account number, but for cryptocurrencies.\n\nI recommend reading the article "Easy entry into tokenomics", the result of which is an airdrop:',
+        'enter_stellar_address': 'Enter your Stellar address (string that starts with G...)',
+        'invalid_address': 'Invalid Stellar address format. The string must start with G...',
+        'stellar_address_explanation': 'A Stellar address is your unique identifier in the Stellar blockchain. It\'s like a bank account number, but for cryptocurrencies.\n\nWe recommend reading the article "Easy entry into tokenomics", the result of which is an airdrop:',
         'checking_address': '👀 So, let\'s see...',
         
         # Trustline check
@@ -51,16 +51,12 @@ MESSAGES = {
         'back_to_start': 'Back to start',
         
         # Successful completion
-        'all_checks_passed': 'Great! All checks passed successfully.',
-        'feedback_instruction': 'Now write to the feedback bot:',
-        'feedback_text': 'Ready text for copying:',
+        'all_checks_passed': 'Great! All checks passed successfully.\n\nTo submit the application, copy this text:```\n{application_text}\n```\nAnd write it to the feedback bot of Montelibero: {feedback_bot}\n\nThank you for participation!',
         'application_text': 'I want to join the Montelibero Association.\nI have read the Agreement and express my full agreement with it.\nMy address: {address}',
         
         # System messages
         'language_changed': 'Language changed to English.',
-        'address_already_member': 'This address is already a member of the Montelibero Association!',
-        'mtlap_balance_info': 'Balance: {balance} MTLAP',
-        'try_different_address': 'Please try a different address'
+        'address_already_member': 'This address is already a member of the Montelibero Association and has MTLAP tokens. Maybe you have already joined the Association before. Or maybe this is not your address? Then try a different address.'
     },
     'ru': {
         # Приветственное сообщение
@@ -72,15 +68,15 @@ MESSAGES = {
         'username_installed': '✅ Я установил юзернейм',
         
         # Согласие с условиями
-        'agreement_text': 'Чтобы вступить в Ассоциацию Монтелиберо, необходимо выразить согласие с актуальным текстом Соглашения.\n\nПожалуйста, ознакомьтесь с ним:',
+        'agreement_text': 'Чтобы вступить в Ассоциацию Монтелиберо, необходимо выразить согласие с актуальным текстом Соглашения.\n\nЭто наш общий контракт.\nПожалуйста, ознакомьтесь с ним:',
         'agree': '✅ Согласен',
         'disagree': '❌ Не согласен',
         'agreement_required': 'Для вступления в Ассоциацию необходимо выразить согласие с Соглашением. Без этого вступление невозможно.',
         
         # Ввод и проверка адреса
-        'enter_stellar_address': 'Укажите ваш Stellar-адрес:',
-        'invalid_address': 'Неверный формат Stellar-адреса.',
-        'stellar_address_explanation': 'Stellar-адрес - это ваш уникальный идентификатор в блокчейне Stellar. Это как номер банковского счета, но для криптовалют.\n\nРекомендую прочитать статью «Лёгкий вход в токеномику», по итогам корой можно получить аирдроп:',
+        'enter_stellar_address': 'Напишите ваш Stellar-адрес (строка что начинается с G...)',
+        'invalid_address': 'Неверный формат Stellar-адреса. Строка должна начинаться с G...',
+        'stellar_address_explanation': 'Stellar-адрес - это ваш уникальный идентификатор в блокчейне Stellar. Это как номер банковского счета, но для криптовалют.\n\nРекомендем прочитать статью «Лёгкий вход в токеномику», по итогам корой можно получить аирдроп:',
         'checking_address': '👀 Так, сейчас посмотрим...',
         
         # Проверка линии доверия
@@ -97,16 +93,12 @@ MESSAGES = {
         'back_to_start': 'Вернуться к началу',
         
         # Успешное завершение
-        'all_checks_passed': '✅ Отлично! Все проверки пройдены успешно.',
-        'feedback_instruction': 'Теперь напишите в бота обратной связи:',
-        'feedback_text': 'Готовый текст для копирования:',
+        'all_checks_passed': '✅ Отлично! Всё готово для подачи заявки.\n\nДля этого скопируйте этот текст:\n```\n{application_text}\n```\n\nИ напишите его боту обратной связи Монтелиберо: {feedback_bot}\n\nСпасибо за участие!',
         'application_text': 'Хочу вступить в Ассоциацию Монтелиберо.\nСоглашение прочитано и выражаю полное согласие с ним.\nМой адрес: {address}',
         
         # Системные сообщения
         'language_changed': 'Язык изменён на русский.',
-        'address_already_member': 'Этот адрес уже является участником Ассоциации!',
-        'mtlap_balance_info': 'На счету: {balance} MTLAP',
-        'try_different_address': 'Попробуйте указать другой адрес'
+        'address_already_member': 'Этот адрес уже является участником Ассоциации и там уже есть токены MTLAP. Возможно, вы вступали в Ассоциацию ранее. А может это не ваш адрес? Тогда попробуйте указать другой.'
     },
 }
 

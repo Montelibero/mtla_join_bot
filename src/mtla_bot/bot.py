@@ -3,7 +3,7 @@ import logging
 import re
 import signal
 import sys
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from telegram.constants import ParseMode
 
@@ -116,8 +116,8 @@ class MTLAJoinBot:
             return
         
         keyboard = [
-            [InlineKeyboardButton("Русский", callback_data="lang_ru")],
-            [InlineKeyboardButton("English", callback_data="lang_en")]
+            [InlineKeyboardButton("English", callback_data="lang_en")],
+            [InlineKeyboardButton("Русский", callback_data="lang_ru")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -267,11 +267,7 @@ class MTLAJoinBot:
         user = self.state_manager.get_user(user_id)
         
         if not user:
-            # Проверяем, это callback или обычное сообщение
-            if hasattr(update, 'callback_query') and update.callback_query:
-                await update.callback_query.message.reply_text("Пользователь не найден. Используйте /start")
-            else:
-                await update.message.reply_text("Пользователь не найден. Используйте /start")
+            await update.effective_message.reply_text("Пользователь не найден. Используйте /start")
             return
         
         self.state_manager.update_state(user_id, UserState.AGREEMENT)
@@ -285,12 +281,8 @@ class MTLAJoinBot:
         
         text = f"{get_message(user.language, 'agreement_text')}\n{config.LINKS[user.language]['agreement_link']}"
         
-        # Проверяем, это callback или обычное сообщение
-        if hasattr(update, 'callback_query') and update.callback_query:
-            # Создаем новое сообщение вместо редактирования
-            await update.callback_query.message.reply_text(text, reply_markup=reply_markup)
-        else:
-            await update.message.reply_text(text, reply_markup=reply_markup)
+        # Используем effective_message для автоматического выбора правильного объекта
+        await update.effective_message.reply_text(text, reply_markup=reply_markup, disable_web_page_preview=True)
     
     async def enter_address_step(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Третий шаг - ввод Стеллар адреса"""
@@ -298,11 +290,7 @@ class MTLAJoinBot:
         user = self.state_manager.get_user(user_id)
         
         if not user:
-            # Проверяем, это callback или обычное сообщение
-            if hasattr(update, 'callback_query') and update.callback_query:
-                await update.callback_query.message.reply_text("Пользователь не найден. Используйте /start")
-            else:
-                await update.message.reply_text("Пользователь не найден. Используйте /start")
+            await update.effective_message.reply_text("Пользователь не найден. Используйте /start")
             return
         
         self.state_manager.update_state(user_id, UserState.ENTERING_ADDRESS)
@@ -314,12 +302,8 @@ class MTLAJoinBot:
         
         text = get_message(user.language, 'enter_stellar_address')
         
-        # Проверяем, это callback или обычное сообщение
-        if hasattr(update, 'callback_query') and update.callback_query:
-            # Создаем новое сообщение вместо редактирования
-            await update.callback_query.message.reply_text(text, reply_markup=reply_markup)
-        else:
-            await update.message.reply_text(text, reply_markup=reply_markup)
+        # Используем effective_message для автоматического выбора правильного объекта
+        await update.effective_message.reply_text(text, reply_markup=reply_markup)
     
     async def validate_address_basic(self, address: str, user_language: str):
         """Базовая валидация Стеллар адреса"""
@@ -332,9 +316,7 @@ class MTLAJoinBot:
             
             # Проверяем, не является ли адрес уже участником
             if account_info['has_trustline'] and account_info['mtlap_balance'] > 0:
-                balance = int(account_info['mtlap_balance'])
-                balance_text = get_message(user_language, 'mtlap_balance_info').format(balance=balance)
-                text = f"{get_message(user_language, 'address_already_member')}\n{balance_text}\n\n{get_message(user_language, 'try_different_address')}"
+                text = get_message(user_language, 'address_already_member')
                 return False, text, account_info
             
             return True, None, account_info
@@ -351,11 +333,7 @@ class MTLAJoinBot:
         logger.info(f"check_address_step called for user {user_id}")
         
         if not user:
-            # Проверяем, это callback или обычное сообщение
-            if hasattr(update, 'callback_query') and update.callback_query:
-                await update.callback_query.message.reply_text("Пользователь не найден. Используйте /start")
-            else:
-                await update.message.reply_text("Пользователь не найден. Используйте /start")
+            await update.effective_message.reply_text("Пользователь не найден. Используйте /start")
             return
         
         # Логируем текущее состояние пользователя
@@ -365,7 +343,7 @@ class MTLAJoinBot:
         # (если пользователь ввел адрес, сообщение уже отправлено в handle_address_input)
         if hasattr(update, 'callback_query') and update.callback_query:
             # Убираем клавиатурные кнопки при начале проверки
-            await update.callback_query.message.reply_text(get_message(user.language, 'checking_address'), reply_markup=ReplyKeyboardMarkup([[]], one_time_keyboard=True))
+            await update.effective_message.reply_text(get_message(user.language, 'checking_address'), reply_markup=ReplyKeyboardRemove())
         
         # Проверяем адрес
         address = user.stellar_address
@@ -376,10 +354,7 @@ class MTLAJoinBot:
         
         if not account_info['exists']:
             text = get_message(user.language, 'invalid_address')
-            if hasattr(update, 'callback_query') and update.callback_query:
-                await update.callback_query.message.reply_text(text)
-            else:
-                await update.message.reply_text(text)
+            await update.effective_message.reply_text(text)
             return
         
         # Устанавливаем статус линии доверия
@@ -403,15 +378,11 @@ class MTLAJoinBot:
         user = self.state_manager.get_user(user_id)
         
         if not user:
-            # Проверяем, это callback или обычное сообщение
-            if hasattr(update, 'callback_query') and update.callback_query:
-                await update.callback_query.message.reply_text("Пользователь не найден. Используйте /start")
-            else:
-                await update.message.reply_text("Пользователь не найден. Используйте /start")
+            await update.effective_message.reply_text("Пользователь не найден. Используйте /start")
             return
         
-        # Определяем базовое сообщение для отправки
-        base_message = update.callback_query.message if hasattr(update, 'callback_query') and update.callback_query else update.message
+        # Используем effective_message для автоматического выбора правильного объекта
+        base_message = update.effective_message
         
         # Проверяем и отправляем каждую проблему отдельным сообщением
         
@@ -446,7 +417,7 @@ class MTLAJoinBot:
             repeat_markup = ReplyKeyboardMarkup(repeat_keyboard, one_time_keyboard=True, resize_keyboard=True)
             
             # Отправляем сообщение с текстом и обычной кнопкой
-            await base_message.reply_text(trustline_text, reply_markup=repeat_markup)
+            await base_message.reply_text(trustline_text, reply_markup=repeat_markup, disable_web_page_preview=True)
         
         # 4. Проблема с рекомендациями
         recommendation_info = account_info.get('recommendation', {})
@@ -469,7 +440,7 @@ class MTLAJoinBot:
             repeat_markup = ReplyKeyboardMarkup(repeat_keyboard, one_time_keyboard=True, resize_keyboard=True)
             
             # Отправляем сообщение с текстом и обычной кнопкой
-            await base_message.reply_text(recommendation_text, reply_markup=repeat_markup)
+            await base_message.reply_text(recommendation_text, reply_markup=repeat_markup, disable_web_page_preview=True)
         
         # Кнопка повторной проверки теперь добавляется к каждому сообщению с проблемами
     
@@ -479,11 +450,7 @@ class MTLAJoinBot:
         user = self.state_manager.get_user(user_id)
         
         if not user:
-            # Проверяем, это callback или обычное сообщение
-            if hasattr(update, 'callback_query') and update.callback_query:
-                await update.callback_query.message.reply_text("Пользователь не найден. Используйте /start")
-            else:
-                await update.message.reply_text("Пользователь не найден. Используйте /start")
+            await update.effective_message.reply_text("Пользователь не найден. Используйте /start")
             return
         
         self.state_manager.update_state(user_id, UserState.COMPLETED)
@@ -491,25 +458,13 @@ class MTLAJoinBot:
         # Формируем текст заявки в формате для копирования
         application_text = get_message(user.language, 'application_text').format(address=user.stellar_address)
         
-        keyboard = [
-            [InlineKeyboardButton(
-                get_message(user.language, 'back_to_start'),
-                callback_data="restart"
-            )]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
         # Используем Markdown для оформления копируемого текста
         # Экранируем подчеркивания в имени бота, чтобы Telegram не интерпретировал их как курсив
         feedback_bot_escaped = config.LINKS[user.language]['feedback_bot'].replace('_', '\\_')
-        text = f"{get_message(user.language, 'all_checks_passed')}\n\n{get_message(user.language, 'feedback_instruction')}\n{feedback_bot_escaped}\n\n{get_message(user.language, 'feedback_text')}\n```\n{application_text}\n```"
+        text = get_message(user.language, 'all_checks_passed').format(application_text=application_text, feedback_bot=feedback_bot_escaped)
         
-        # Проверяем, это callback или обычное сообщение
-        if hasattr(update, 'callback_query') and update.callback_query:
-            # Создаем новое сообщение вместо редактирования
-            await update.callback_query.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
-        else:
-            await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+        # Используем effective_message для автоматического выбора правильного объекта
+        await update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     
     async def handle_address_input(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработчик ввода Стеллар адреса и ответов на соглашение"""
@@ -563,7 +518,7 @@ class MTLAJoinBot:
             logger.info(f"User {user_id} asked about Stellar address")
             # Отправляем информацию о лёгком способе и убираем клавиатурные кнопки
             text = f"{get_message(user.language, 'stellar_address_explanation')} {config.LINKS[user.language]['light_entry_article']}"
-            await update.message.reply_text(text, reply_markup=ReplyKeyboardMarkup([[]], one_time_keyboard=True))
+            await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
             return
         
         logger.info(f"User {user_id} state: {user.state}, expected: {UserState.ENTERING_ADDRESS.value}")
@@ -586,31 +541,19 @@ class MTLAJoinBot:
         
         logger.info(f"Address {address} is valid, setting it for user {user_id}")
         self.state_manager.set_stellar_address(user_id, address)
-        
+
+        # Отправляем сообщение о начале проверки и убираем клавиатурные кнопки
+        await update.message.reply_text(get_message(user.language, 'checking_address'), reply_markup=ReplyKeyboardRemove())
+
         # Используем общую функцию валидации
         success, error_text, account_info = await self.validate_address_basic(address, user.language)
         
         if not success:
-            if error_text:
-                # Если это уже участник, показываем кнопку "Вернуться к началу"
-                if "уже является участником" in error_text or "already a member" in error_text:
-                    keyboard = [
-                        [InlineKeyboardButton(
-                            get_message(user.language, 'back_to_start'),
-                            callback_data="restart"
-                        )]
-                    ]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    await update.message.reply_text(error_text, reply_markup=reply_markup)
-                else:
-                    await update.message.reply_text(error_text)
+            await update.message.reply_text(error_text)
             return
         
         # Если адрес подходит, обновляем состояние и начинаем проверку
         self.state_manager.update_state(user_id, UserState.CHECKING_ADDRESS)
-        
-        # Отправляем сообщение о начале проверки и убираем клавиатурные кнопки
-        await update.message.reply_text(get_message(user.language, 'checking_address'), reply_markup=ReplyKeyboardMarkup([[]], one_time_keyboard=True))
         
         # Начинаем проверку адреса
         await self.check_address_step(update, context)
