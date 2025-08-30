@@ -17,7 +17,7 @@ def get_secret(key, default=None):
         str: Значение секрета или None
     """
     # Сначала пробуем Docker secrets
-    secret_path = f"/run/secrets/{key}"
+    secret_path = f"/run/secrets/MTLA_JOIN_BOT_{key}"
     if os.path.exists(secret_path):
         try:
             with open(secret_path, 'r') as f:
