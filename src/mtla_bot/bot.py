@@ -258,7 +258,7 @@ class MTLAJoinBot:
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            text = f"{get_message(user.language, 'no_username')}\n\n{get_message(user.language, 'username_guide_text')}\n{config.LINKS[user.language]['username_guide']}"
+            text = get_message(user.language, 'no_username')
             await update.message.reply_text(text, reply_markup=reply_markup)
     
     async def agreement_step(self, update: Update, context: ContextTypes.DEFAULT_TYPE):

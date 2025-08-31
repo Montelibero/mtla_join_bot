@@ -21,8 +21,7 @@ MESSAGES = {
         'welcome': 'This bot will help you submit an application to join the Montelibero Association (@MTL_Association). Just a few steps and a few checks!',
         
         # Username check
-        'no_username': 'You don\'t have a username. Although the Association rules don\'t prohibit accounts without usernames, we don\'t know how to work with participants who don\'t have them.',
-        'username_guide_text': 'Username setup guide:',
+        'no_username': 'You don\'t have a username. Although the Association rules don\'t prohibit accounts without usernames, we don\'t know how to work with participants who don\'t have them.\n\nYou can set a username in the Telegram settings. When you do this, click the button below.',
         'username_installed': '✅ I installed username',
         
         # Agreement
@@ -63,8 +62,7 @@ MESSAGES = {
         'welcome': 'Этот бот поможет оформить вам заявку на вступление в Ассоциацию Монтелиберо (@MTL_Association). Всего несколько шагов и несколько проверок!',
         
         # Проверка юзернейма
-        'no_username': 'У вас нет юзернейма :-(\n\nХотя правила Ассоциации не запрещают аккаунты без юзернеймов, мы не знаем, как работать с участниками без них.',
-        'username_guide_text': 'Инструкция по установке юзернейма:',
+        'no_username': 'У вас нет юзернейма :-(\n\nХотя правила Ассоциации не запрещают аккаунты без юзернеймов, мы не знаем, как работать с участниками без них.\n\nЮзернейм можно установить в настройках Telegram. Когда сделаете это, нажмите кнопку ниже.',
         'username_installed': '✅ Я установил юзернейм',
         
         # Согласие с условиями
