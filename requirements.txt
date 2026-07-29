@@ -1,5 +1,5 @@
-python-telegram-bot==20.7
-stellar-sdk==13.0.0
-python-dotenv==1.0.0
-aiohttp==3.9.1
-pymongo==4.6.1
+python-telegram-bot==22.8
+stellar-sdk==15.0.0
+python-dotenv==1.2.2
+aiohttp==3.14.3
+pymongo==4.17.0
