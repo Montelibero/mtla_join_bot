@@ -53,6 +53,7 @@ class StellarClient:
                 session,
                 asset_code=self.mtlap_code,
                 asset_issuer=self.mtlap_issuer,
+                bsn_url=config.BSN_URL,
                 horizon_url=self._horizon_url,
             )
         except Exception:

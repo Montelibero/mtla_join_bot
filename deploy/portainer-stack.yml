@@ -40,11 +40,13 @@ services:
     stop_grace_period: 30s
     environment:
       ADMIN_IDS: ${ADMIN_IDS:?ADMIN_IDS must be configured in Portainer}
+      BSN_URL: http://bsn_app
       MONGODB_URI: mongodb://mongo:27017/
     secrets:
       - MTLA_JOIN_BOT_TELEGRAM_TOKEN
     networks:
       - backend
+      - web3
     deploy:
       replicas: 1
       restart_policy:
@@ -73,3 +75,6 @@ volumes:
 networks:
   backend:
     driver: overlay
+  web3:
+    external: true
+    name: web3

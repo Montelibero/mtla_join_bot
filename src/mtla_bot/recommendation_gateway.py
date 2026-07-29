@@ -399,7 +399,11 @@ class RecommendationGateway:
             raise _invalid_configuration("body limits must be positive")
 
         self._minimum_balance = minimum_balance
-        self._bsn_origin = _validated_origin(bsn_url, "bsn_url")
+        self._bsn_origin = _validated_origin(
+            bsn_url,
+            "bsn_url",
+            internal_http_host="bsn_app",
+        )
         self._horizon_origin = _validated_origin(horizon_url, "horizon_url")
         self._bsn_request_timeout = bsn_request_timeout
         self._horizon_request_timeout = horizon_request_timeout
@@ -544,7 +548,7 @@ class RecommendationGateway:
         if redirected.user is not None or redirected.password is not None:
             raise _redirect_error("BSN redirect contains user information")
         if redirected.origin() != self._bsn_origin:
-            raise _redirect_error("BSN redirect left the configured HTTPS origin")
+            raise _redirect_error("BSN redirect left the configured origin")
         if (
             redirected.query.getall("format", []) != ["json"]
             or redirected.query.getall("tag", []) != [RECOMMENDATION_TAG]
@@ -790,13 +794,31 @@ def _validated_asset(asset_code: str, asset_issuer: str) -> tuple[str, str]:
     return asset.code, asset.issuer
 
 
-def _validated_origin(raw_url: str, name: str) -> URL:
+def _validated_origin(
+    raw_url: str,
+    name: str,
+    *,
+    internal_http_host: str | None = None,
+) -> URL:
     try:
         url = URL(raw_url)
     except (TypeError, ValueError) as exc:
         raise _invalid_configuration(f"{name} is not a valid URL") from exc
-    if url.scheme != "https" or not url.host or url.user or url.password:
-        raise _invalid_configuration(f"{name} must be an HTTPS origin")
+    is_https = url.scheme == "https"
+    is_allowed_internal_http = (
+        url.scheme == "http"
+        and url.host == internal_http_host
+        and url.port == 80
+    )
+    if (
+        not url.host
+        or url.user
+        or url.password
+        or not (is_https or is_allowed_internal_http)
+    ):
+        raise _invalid_configuration(
+            f"{name} must be an HTTPS origin or the approved internal service origin"
+        )
     if url.path not in ("", "/") or url.query or url.fragment:
         raise _invalid_configuration(f"{name} must not contain a path, query, or fragment")
     return url.origin()

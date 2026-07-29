@@ -78,6 +78,16 @@ class ConfigurationValidationTest(unittest.TestCase):
         ):
             self.validate(network="mainnet")
 
+    def test_default_agreement_links_follow_interface_language(self) -> None:
+        self.assertEqual(
+            config.DEFAULT_AGREEMENT_LINK_RU,
+            "https://docs.mtla.me/Agreement/Agreement.ru.html",
+        )
+        self.assertEqual(
+            config.DEFAULT_AGREEMENT_LINK_EN,
+            "https://docs.mtla.me/Agreement/Agreement.en.html",
+        )
+
     @patch("mtla_bot.bot.StellarClient")
     @patch("mtla_bot.bot.UserStateManager")
     def test_invalid_config_fails_before_database_construction(
@@ -157,6 +167,13 @@ class TlsAndContainerGuardTest(unittest.TestCase):
         self.assertIn("MONGODB_URI: mongodb://mongo:27017/", compose)
         self.assertIn("external: true", compose)
         self.assertIn("name: mtla_join_bot_data", compose)
+
+    def test_portainer_uses_bsn_over_shared_internal_network(self) -> None:
+        compose = (PROJECT_ROOT / "deploy/portainer-stack.yml").read_text()
+
+        self.assertIn("BSN_URL: http://bsn_app", compose)
+        self.assertIn("- web3", compose)
+        self.assertIn("name: web3", compose)
 
     def test_polling_keeps_updates_received_during_downtime(self) -> None:
         bot_source = (PROJECT_ROOT / "src/mtla_bot/bot.py").read_text()

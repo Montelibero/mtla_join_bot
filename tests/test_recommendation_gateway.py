@@ -287,6 +287,29 @@ class HorizonParserTest(unittest.TestCase):
 
 
 class RecommendationGatewayTest(unittest.IsolatedAsyncioTestCase):
+    async def test_accepts_approved_internal_bsn_service_origin(self) -> None:
+        session = FakeSession()
+        internal_url = (
+            f"http://bsn_app/accounts/{CANDIDATE}"
+            "?format=json&tag=RecommendToMTLA"
+        )
+        session.add(
+            internal_url,
+            FakeResponse(200, bsn_payload(CANDIDATE, [])),
+        )
+
+        result = await make_gateway(
+            session,
+            bsn_url="http://bsn_app",
+        ).check(CANDIDATE)
+
+        self.assertEqual(result.status, RecommendationStatus.NONE)
+        self.assertEqual(session.calls[0][0], internal_url)
+
+    def test_rejects_plain_http_for_public_bsn_origin(self) -> None:
+        with self.assertRaises(RecommendationGatewayError):
+            make_gateway(FakeSession(), bsn_url="http://bsn.expert")
+
     async def test_uses_per_account_endpoint_and_accepts_same_origin_redirect(self) -> None:
         session = FakeSession()
         redirected_url = (

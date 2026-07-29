@@ -44,6 +44,9 @@ MONGODB_COLLECTION = get_secret('MONGODB_COLLECTION', 'users')
 # Stellar Network (используем mainnet по умолчанию)
 STELLAR_NETWORK = get_secret('STELLAR_NETWORK', 'public')
 
+# BSN API origin. Production may use the service name on a shared Docker network.
+BSN_URL = get_secret('BSN_URL', 'https://bsn.expert')
+
 # MTLAP Token Asset (используем актуальный по умолчанию)
 MTLAP_ASSET = get_secret('MTLAP_ASSET', 'MTLAP:GCNVDZIHGX473FEI7IXCUAEXUJ4BGCKEMHF36VYP5EMS7PX2QBLAMTLA')
 
@@ -91,10 +94,13 @@ def validate_config() -> None:
     get_mtlap_asset()
 
 # Links
+DEFAULT_AGREEMENT_LINK_RU = "https://docs.mtla.me/Agreement/Agreement.ru.html"
+DEFAULT_AGREEMENT_LINK_EN = "https://docs.mtla.me/Agreement/Agreement.en.html"
+
 LINKS = {
     'ru': {
         'username_guide': 'https://core.stellar.org/docs/glossary/accounts/#username',
-        'agreement_link': get_secret('AGREEMENT_LINK_RU', 'https://github.com/Montelibero/MTLA-Documents/blob/main/Internal/Agreement/Agreement.ru.md'),
+        'agreement_link': get_secret('AGREEMENT_LINK_RU', DEFAULT_AGREEMENT_LINK_RU),
         'mmvb_link': 'https://t.me/MyMTLWalletBot',
         'light_entry_article': 'https://montelibero.org/2022/03/10/quick-entry-to-the-montelibero-tokenomics/',
         'mtlap_trustline': 'https://eurmtl.me/asset/MTLAP',
@@ -103,7 +109,7 @@ LINKS = {
     },
     'en': {
         'username_guide': 'https://core.stellar.org/docs/glossary/accounts/#username',
-        'agreement_link': get_secret('AGREEMENT_LINK_EN', 'https://github.com/Montelibero/MTLA-Documents/blob/main/Internal/Agreement/Agreement.en.md'),
+        'agreement_link': get_secret('AGREEMENT_LINK_EN', DEFAULT_AGREEMENT_LINK_EN),
         'mmvb_link': 'https://t.me/MyMTLWalletBot',
         'light_entry_article': 'https://montelibero.org/2022/03/10/quick-entry-to-the-montelibero-tokenomics/',
         'mtlap_trustline': 'https://eurmtl.me/asset/MTLAP',
