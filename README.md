@@ -169,6 +169,11 @@ python main.py
 - **Очистка данных после backup**: `MTLA_JOIN_BOT_CONFIRM_CLEAN=YES ./docker-simple.sh clean`
 - **Войти в контейнер**: `./docker-simple.sh shell`
 
+Production-релизы собираются в GitHub Actions и публикуются в GHCR с обычным
+тегом `latest` и неизменяемыми тегами версий. Portainer Swarm stack, первый
+перенос MongoDB в отдельный сервис, проверки и откат описаны в
+[`docs/RELEASE.md`](docs/RELEASE.md).
+
 ## Структура проекта
 
 ```

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI_IMAGE: mtla-join-bot:ci
+
+jobs:
+  test:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Run unit tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -q
+
+      - name: Compile Python sources
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m compileall -q main.py src
+
+      - name: Check installed dependencies
+        run: python -m pip check
+
+      - name: Validate development Compose file
+        run: docker compose -f compose.yaml config --quiet
+
+      - name: Validate production Swarm stack
+        env:
+          ADMIN_IDS: "1"
+        run: docker stack config --compose-file deploy/portainer-stack.yml >/dev/null
+
+  container:
+    name: Container image
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build CI image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: ${{ env.CI_IMAGE }}
+          cache-from: type=gha,scope=ci
+          cache-to: type=gha,mode=max,scope=ci
+
+      - name: Verify image runtime boundary
+        run: |
+          docker run --rm --entrypoint sh "$CI_IMAGE" -c 'test "$(id -u)" -ne 0'
+          docker run --rm --entrypoint python "$CI_IMAGE" -c \
+            "from pathlib import Path; assert not Path('/app/.env').exists(); import sys; sys.path.insert(0, '/app/src'); import mtla_bot"

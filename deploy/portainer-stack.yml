@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f
+    stop_grace_period: 60s
+    volumes:
+      - mtla_join_bot_data:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 15s
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 60s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+        monitor: 30s
+
+  mtla_join_bot:
+    image: ghcr.io/montelibero/mtla_join_bot:latest
+    stop_grace_period: 30s
+    environment:
+      ADMIN_IDS: ${ADMIN_IDS:?ADMIN_IDS must be configured in Portainer}
+      MONGODB_URI: mongodb://mongo:27017/
+    secrets:
+      - MTLA_JOIN_BOT_TELEGRAM_TOKEN
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 60s
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+        monitor: 30s
+
+secrets:
+  MTLA_JOIN_BOT_TELEGRAM_TOKEN:
+    external: true
+
+volumes:
+  mtla_join_bot_data:
+    external: true
+    name: mtla_join_bot_data
+
+networks:
+  backend:
+    driver: overlay
