@@ -21,10 +21,19 @@ Thumbs.db
 # Docker
 Dockerfile
 .dockerignore
+compose*.yaml
+docker-simple.sh
 
 # Documentation
 README.md
+BOT_FLOW.md
+docs/
 
-# Environment files (копируем только .env)
-.env.example
+# Tests
+tests/
+
+# Local environment and secrets are injected only at container runtime
+.env
+.env.*
+*.env
 env_example.txt

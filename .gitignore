@@ -53,8 +53,10 @@ logs/
 
 # Environment variables (except example)
 .env
+.env.*
 .env.local
 .env.production
+*.env
 
 # Database
 *.db

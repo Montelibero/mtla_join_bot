@@ -1,8 +1,13 @@
 import os
 from dotenv import load_dotenv
+from stellar_sdk import Asset
 
 # Загружаем .env файл если он существует
 load_dotenv()
+
+
+class ConfigurationError(RuntimeError):
+    """Safe configuration error that never embeds supplied secret values."""
 
 def get_secret(key, default=None):
     """
@@ -51,6 +56,39 @@ if admin_ids_str:
     except ValueError as e:
         print(f"Warning: Invalid ADMIN_IDS format: {e}")
         ADMIN_IDS = []
+
+
+def get_mtlap_asset() -> Asset:
+    """Return the validated configured MTLAP asset."""
+
+    try:
+        code, issuer = MTLAP_ASSET.split(":")
+        return Asset(code, issuer)
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ConfigurationError("Invalid MTLAP_ASSET configuration") from exc
+
+
+def validate_config() -> None:
+    """Fail fast on missing or structurally invalid required configuration."""
+
+    token = TELEGRAM_TOKEN
+    if not isinstance(token, str) or not token:
+        raise ConfigurationError("TELEGRAM_TOKEN is required")
+    if token != token.strip() or any(character.isspace() for character in token):
+        raise ConfigurationError("Invalid TELEGRAM_TOKEN configuration")
+
+    token_parts = token.split(":")
+    if (
+        len(token_parts) != 2
+        or not token_parts[0].isdigit()
+        or not token_parts[1]
+    ):
+        raise ConfigurationError("Invalid TELEGRAM_TOKEN configuration")
+
+    if STELLAR_NETWORK not in {"public", "testnet"}:
+        raise ConfigurationError("Invalid STELLAR_NETWORK configuration")
+
+    get_mtlap_asset()
 
 # Links
 LINKS = {

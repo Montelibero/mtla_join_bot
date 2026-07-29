@@ -1,45 +1,28 @@
-# Используем официальный Python образ
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm@sha256:b18992999dbe963a45a8a4da40ac2b1975be1a776d939d098c647482bcad5cba
 
-# Устанавливаем системные зависимости
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Добавляем MongoDB GPG ключ и репозиторий (современный способ)
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg \
-    && echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system mtla \
+    && useradd --system --gid mtla --home-dir /app mtla
 
-# Устанавливаем MongoDB
-RUN apt-get update && apt-get install -y \
-    mongodb-org \
-    && rm -rf /var/lib/apt/lists/*
-
-# Создаем директории для MongoDB
-RUN mkdir -p /data/db
-
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем requirements.txt и устанавливаем Python зависимости
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем код приложения
-COPY . .
+COPY main.py ./
+COPY src ./src
 
-# Создаем скрипт запуска
-RUN echo '#!/bin/bash\n\
-# Запускаем MongoDB в фоне\n\
-mongod --fork --logpath /var/log/mongodb.log --dbpath /data/db\n\
-\n\
-# Ждем запуска MongoDB\n\
-sleep 5\n\
-\n\
-# Запускаем бота\n\
-python main.py\n\
-' > /app/start.sh && chmod +x /app/start.sh
+RUN mkdir -p /run/secrets \
+    && chown -R mtla:mtla /app /run/secrets
 
-# Запускаем скрипт
-CMD ["/app/start.sh"]
+USER mtla
+
+HEALTHCHECK --interval=5s --timeout=2s --start-period=10s --retries=3 \
+    CMD ["python", "-c", "from pathlib import Path; raise SystemExit(0 if b'main.py' in Path('/proc/1/cmdline').read_bytes() else 1)"]
+
+CMD ["python", "main.py"]

@@ -1,0 +1,38 @@
+name: mtla-join-bot
+
+services:
+  mongo:
+    image: mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f
+    restart: unless-stopped
+    volumes:
+      - mtla_join_bot_data:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+
+  bot:
+    image: mtla-join-bot:local
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - path: ${MTLA_JOIN_BOT_ENV_FILE:-.env}
+        required: false
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mtla_join_bot_data:
+    external: true
+    name: mtla_join_bot_data

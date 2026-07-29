@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 class AdminTools:
     """Инструменты для администраторов бота"""
     
-    def __init__(self):
-        self.state_manager = UserStateManager()
+    def __init__(self, state_manager: UserStateManager | None = None):
+        self.state_manager = state_manager or UserStateManager()
+        self._owns_state_manager = state_manager is None
     
     def get_user_statistics(self) -> str:
         """Получает статистику по пользователям в читаемом виде"""
@@ -31,9 +32,9 @@ class AdminTools:
                 result += f"  {state_name}: {count}\n"
             
             return result
-        except Exception as e:
-            logger.error(f"Error getting statistics: {e}")
-            return f"Ошибка при получении статистики: {e}"
+        except Exception:
+            logger.exception("Error getting statistics")
+            return "Статистика временно недоступна из-за ошибки базы данных"
     
     def get_incomplete_users_report(self) -> str:
         """Получает отчет о незавершенных пользователях"""
@@ -46,12 +47,13 @@ class AdminTools:
             result = f"📋 Незавершенные пользователи ({len(incomplete_users)}):\n\n"
             
             for user in incomplete_users[:20]:  # Показываем только первые 20
-                username = user.get('username', 'Unknown')
+                username = user.get('username')
+                identity = f"@{username}" if username else f"Telegram ID {user.get('user_id', 'Unknown')}"
                 state = user.get('state', 'Unknown')
                 state_name = self._get_state_name(state)
                 created = user.get('created_at', 'Unknown')
                 
-                result += f"👤 @{username}\n"
+                result += f"👤 {identity}\n"
                 result += f"   📍 Состояние: {state_name}\n"
                 result += f"   📅 Создан: {created}\n\n"
             
@@ -59,9 +61,9 @@ class AdminTools:
                 result += f"... и еще {len(incomplete_users) - 20} пользователей"
             
             return result
-        except Exception as e:
-            logger.error(f"Error getting incomplete users: {e}")
-            return f"Ошибка при получении отчета: {e}"
+        except Exception:
+            logger.exception("Error getting incomplete users")
+            return "Отчёт временно недоступен из-за ошибки базы данных"
     
     def get_reminder_candidates(self, days_inactive: int = 7) -> str:
         """Получает список пользователей для напоминания"""
@@ -74,12 +76,13 @@ class AdminTools:
             result = f"🔔 Пользователи для напоминания ({len(reminder_users)}):\n\n"
             
             for user in reminder_users[:15]:  # Показываем только первые 15
-                username = user.get('username', 'Unknown')
+                username = user.get('username')
+                identity = f"@{username}" if username else f"Telegram ID {user.get('user_id', 'Unknown')}"
                 state = user.get('state', 'Unknown')
                 state_name = self._get_state_name(state)
                 last_activity = user.get('last_activity', 'Unknown')
                 
-                result += f"👤 @{username}\n"
+                result += f"👤 {identity}\n"
                 result += f"   📍 Состояние: {state_name}\n"
                 result += f"   ⏰ Последняя активность: {last_activity}\n\n"
             
@@ -87,9 +90,9 @@ class AdminTools:
                 result += f"... и еще {len(reminder_users) - 15} пользователей"
             
             return result
-        except Exception as e:
-            logger.error(f"Error getting reminder candidates: {e}")
-            return f"Ошибка при получении списка: {e}"
+        except Exception:
+            logger.exception("Error getting reminder candidates")
+            return "Список временно недоступен из-за ошибки базы данных"
     
     def get_user_details(self, user_id: int) -> str:
         """Получает детальную информацию о пользователе"""
@@ -99,7 +102,8 @@ class AdminTools:
             if not user:
                 return f"Пользователь с ID {user_id} не найден"
             
-            result = f"👤 Детали пользователя @{user.username}:\n\n"
+            identity = f"@{user.username}" if user.username else f"Telegram ID {user.user_id}"
+            result = f"👤 Детали пользователя {identity}:\n\n"
             result += f"🆔 ID: {user.user_id}\n"
             result += f"🌐 Язык: {user.language}\n"
             result += f"📍 Состояние: {self._get_state_name(user.state)}\n"
@@ -122,9 +126,9 @@ class AdminTools:
                 result += f"\n👥 Рекомендатель: @{user.recommender_username}"
             
             return result
-        except Exception as e:
-            logger.error(f"Error getting user details: {e}")
-            return f"Ошибка при получении деталей: {e}"
+        except Exception:
+            logger.exception("Error getting user details")
+            return "Детали временно недоступны из-за ошибки базы данных"
     
     def _get_state_name(self, state: str) -> str:
         """Преобразует состояние в читаемое название"""
@@ -133,13 +137,15 @@ class AdminTools:
             'agreement': 'Согласие с условиями',
             'entering_address': 'Ввод адреса',
             'checking_address': 'Проверка адреса',
+            'finalizing': 'Доставка результата',
             'completed': 'Завершено'
         }
         return state_names.get(state, state)
     
     def close_connection(self):
         """Закрывает соединение с базой данных"""
-        self.state_manager.close_connection()
+        if self._owns_state_manager:
+            self.state_manager.close_connection()
 
 # Пример использования
 if __name__ == "__main__":
